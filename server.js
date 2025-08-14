@@ -1,6 +1,7 @@
 const express = require("express")
 const cors = require("cors")
 const axios = require("axios")
+const bodyParser = require("body-parser")
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -8,7 +9,8 @@ const JSON_SERVER_URL = "http://localhost:3001"
 
 // 中間件
 app.use(cors())
-app.use(express.json())
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded())
 
 // 錯誤處理中間件
 const handleError = (res, error) => {
@@ -16,13 +18,13 @@ const handleError = (res, error) => {
   if (error.response) {
     return res.status(error.response.status).json({
       success: false,
-      message: error.response.data || message,
+      message: error.response?.data || error.message,
       error: error.response.statusText,
     })
   }
   return res.status(500).json({
     success: false,
-    message,
+    message: error.response?.data || error.message,
     error: error.message,
   })
 }
@@ -43,8 +45,8 @@ app.post("/api/:table", async (req, res) => {
     const { table } = req.params
 
     // 自動產生最新的id
-    const res = await axios.get(`${JSON_SERVER_URL}/${table}`)
-    const maxId = res.data.reduce((max, user) => Math.max(max, user.id), 0)
+    const listRes = await axios.get(`${JSON_SERVER_URL}/${table}`)
+    const maxId = listRes.data.reduce((max, user) => Math.max(max, user.id), 0)
     req.body.id = maxId + 1
 
     // 發送請求到 JSON Server
@@ -94,19 +96,6 @@ app.put("/api/${table}/:id", async (req, res) => {
     successResponse(res, response.data)
   } catch (error) {
     handleError(res, error, "更新用戶失敗")
-  }
-})
-
-// 3.1 UPDATE - 部分更新用戶
-app.patch("/api/:table/:id", async (req, res) => {
-  try {
-    const { table, id } = req.params
-
-    const response = await axios.patch(`${JSON_SERVER_URL}/${table}/${id}`, req.body)
-
-    successResponse(res, response.data)
-  } catch (error) {
-    handleError(res, error)
   }
 })
 
