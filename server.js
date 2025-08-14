@@ -41,6 +41,12 @@ const successResponse = (res, data, statusCode = 200) => {
 app.post("/api/:table", async (req, res) => {
   try {
     const { table } = req.params
+
+    // 自動產生最新的id
+    const res = await axios.get(`${JSON_SERVER_URL}/${table}`)
+    const maxId = res.data.reduce((max, user) => Math.max(max, user.id), 0)
+    req.body.id = maxId + 1
+
     // 發送請求到 JSON Server
     const response = await axios.post(`${JSON_SERVER_URL}/${table}`, req.body)
 
