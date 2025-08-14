@@ -84,7 +84,7 @@ app.get("/api/:table/:id", async (req, res) => {
 })
 
 // 3. UPDATE - 更新用戶
-app.put("/api/${table}/:id", async (req, res) => {
+app.put("/api/:table/:id", async (req, res) => {
   try {
     const { table, id } = req.params
 
